@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -73,15 +74,12 @@ public final class MusicGroupImpl implements MusicGroup {
 
     @Override
     public OptionalDouble averageDurationOfSongs(final String albumName) {
-        double avg = 0;
-        return OptionalDouble.of(this.songs
+        return this.songs
             .stream()
             .filter(t -> t.getAlbumName().isPresent())
             .filter(t -> t.getAlbumName().get().equals(albumName))
-            .map(t -> t.getDuration())
-            .reduce(avg, (a, t) -> a = a + t)
-            / this.countSongs(albumName)
-        );
+            .mapToDouble(t -> t.getDuration())
+            .average();
     }
 
     @Override
@@ -89,19 +87,28 @@ public final class MusicGroupImpl implements MusicGroup {
         return this.songs
             .stream()
             .sorted((a, b) -> Double.compare(b.getDuration(), a.getDuration()))
-            .limit(1)
             .map(t -> t.getSongName())
             .findFirst();
     }
 
     @Override
     public Optional<String> longestAlbum() {
-        return this.albums // TODO
-            .keySet()
+        return this.songs
             .stream()
-            .flatMap(t -> this.songs
-                .stream()
-            );
+            .filter(a -> a.getAlbumName().isPresent())
+            .collect(Collectors.groupingBy(a -> a.getAlbumName().get()))
+            .entrySet()
+            .stream()
+            .flatMap(t -> Stream.of(
+                Map.entry(t.getKey(), t.getValue()
+                    .stream()
+                    .mapToDouble(a -> a.getDuration())
+                    .sum())
+                )
+            )
+            .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
+            .map(t -> t.getKey())
+            .findFirst();
     }
 
     private static final class Song {
