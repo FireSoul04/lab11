@@ -34,7 +34,7 @@ public final class MusicGroupImpl implements MusicGroup {
     public Stream<String> orderedSongNames() {
         return this.songs
             .stream()
-            .map(t -> t.getSongName())
+            .map(Song::getSongName)
             .sorted();
     }
 
@@ -51,24 +51,26 @@ public final class MusicGroupImpl implements MusicGroup {
             .entrySet()
             .stream()
             .filter(t -> t.getValue().equals(year))
-            .map(t -> t.getKey());
+            .map(Map.Entry::getKey);
     }
 
     @Override
     public int countSongs(final String albumName) {
-        return (int)this.songs
+        return (int) this.songs
             .stream()
-            .filter(t -> t.getAlbumName().isPresent())
-            .map(t -> t.getAlbumName().get())
+            .map(Song::getAlbumName)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .filter(t -> t.equals(albumName))
             .count();
     }
 
     @Override
     public int countSongsInNoAlbum() {
-        return (int)this.songs
+        return (int) this.songs
             .stream()
-            .filter(t -> t.getAlbumName().isEmpty())
+            .map(Song::getAlbumName)
+            .filter(Optional::isEmpty)
             .count();
     }
 
@@ -78,7 +80,7 @@ public final class MusicGroupImpl implements MusicGroup {
             .stream()
             .filter(t -> t.getAlbumName().isPresent())
             .filter(t -> t.getAlbumName().get().equals(albumName))
-            .mapToDouble(t -> t.getDuration())
+            .mapToDouble(Song::getDuration)
             .average();
     }
 
@@ -87,7 +89,7 @@ public final class MusicGroupImpl implements MusicGroup {
         return this.songs
             .stream()
             .sorted((a, b) -> Double.compare(b.getDuration(), a.getDuration()))
-            .map(t -> t.getSongName())
+            .map(Song::getSongName)
             .findFirst();
     }
 
@@ -102,12 +104,12 @@ public final class MusicGroupImpl implements MusicGroup {
             .flatMap(t -> Stream.of(
                 Map.entry(t.getKey(), t.getValue()
                     .stream()
-                    .mapToDouble(a -> a.getDuration())
+                    .mapToDouble(Song::getDuration)
                     .sum())
                 )
             )
             .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
-            .map(t -> t.getKey())
+            .map(Map.Entry::getKey)
             .findFirst();
     }
 
