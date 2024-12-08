@@ -97,21 +97,21 @@ public final class AnotherConcurrentGUI extends JFrame {
         /**
          * External command to stop counting.
          */
-        public void stopCounting() {
+        public synchronized void stopCounting() {
             this.stop = true;
         }
 
         /**
          * 
          */
-        public void goUp() {
+        public synchronized void goUp() {
             this.sign = 1;
         }
 
         /**
          * 
          */
-        public void goDown() {
+        public synchronized void goDown() {
             this.sign = -1;
         }
     }
