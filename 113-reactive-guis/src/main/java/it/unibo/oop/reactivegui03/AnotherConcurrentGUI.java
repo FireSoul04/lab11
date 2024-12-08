@@ -2,10 +2,7 @@ package it.unibo.oop.reactivegui03;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -17,8 +14,9 @@ import javax.swing.SwingUtilities;
  * Third experiment with reactive gui.
  */
 @SuppressWarnings("PMD.AvoidPrintStackTrace")
-public final class AnotherConcurrentGUI extends JFrame {private static final long serialVersionUID = 1L;
-
+public final class AnotherConcurrentGUI extends JFrame {
+    
+    private static final long serialVersionUID = 1L;
     private static final double WIDTH_PERC = 0.2;
     private static final double HEIGHT_PERC = 0.1;
     private final JLabel display = new JLabel();
@@ -46,14 +44,16 @@ public final class AnotherConcurrentGUI extends JFrame {private static final lon
          * thread management should be left to
          * java.util.concurrent.ExecutorService
          */
-        final CounterAgent agent = new CounterAgent();
-        new Thread(agent).start();
+        final CounterAgent counterAgent = new CounterAgent();
+        final StopAfterDelayAgent stopAgent = new StopAfterDelayAgent(counterAgent);
+        new Thread(counterAgent).start();
+        new Thread(stopAgent).start();
         /*
          * Register a listener that stops it
          */
-        up.addActionListener(e -> agent.goUp());
-        down.addActionListener(e -> agent.goDown());
-        stop.addActionListener(e -> agent.stopCounting());
+        up.addActionListener(e -> counterAgent.goUp());
+        down.addActionListener(e -> counterAgent.goDown());
+        stop.addActionListener(e -> counterAgent.stopCounting());
     }
 
     /*
@@ -122,9 +122,20 @@ public final class AnotherConcurrentGUI extends JFrame {private static final lon
      */
     private class StopAfterDelayAgent implements Runnable {
 
+        private CounterAgent counterAgent;
+
+        public StopAfterDelayAgent(final CounterAgent counterAgent) {
+            this.counterAgent = counterAgent;
+        }
+
         @Override
         public void run() {
-            
+            try {
+                Thread.sleep(10 * 1000);
+                this.counterAgent.stopCounting();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
