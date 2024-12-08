@@ -45,7 +45,7 @@ public final class AnotherConcurrentGUI extends JFrame {
          * java.util.concurrent.ExecutorService
          */
         final CounterAgent counterAgent = new CounterAgent();
-        final StopAfterDelayAgent stopAgent = new StopAfterDelayAgent();
+        final StopAfterDelayAgent stopAgent = new StopAfterDelayAgent(counterAgent);
         new Thread(counterAgent).start();
         new Thread(stopAgent).start();
         /*
@@ -122,12 +122,20 @@ public final class AnotherConcurrentGUI extends JFrame {
      */
     private class StopAfterDelayAgent implements Runnable {
 
+        private final CounterAgent counterAgent;
+
+        public StopAfterDelayAgent(final CounterAgent counterAgent) {
+            this.counterAgent = counterAgent;
+        }
+
         @Override
         public void run() {
             try {
                 Thread.sleep(10 * 1000);
+                this.counterAgent.stopCounting();
                 AnotherConcurrentGUI.this.up.setEnabled(false);
                 AnotherConcurrentGUI.this.down.setEnabled(false);
+                AnotherConcurrentGUI.this.stop.setEnabled(false);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
